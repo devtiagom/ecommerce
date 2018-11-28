@@ -8,6 +8,7 @@ use \Slim\Slim;
 use \Hcode\Page;
 use \Hcode\PageAdmin;
 use \Hcode\Model\User;
+use \Hcode\Model\Category;
 
 $app = new Slim();
 $app->config('debug', true);
@@ -55,7 +56,10 @@ $app->get('/admin/users', function() {
 
 	$users = User::listAll();
 
-	$page = new PageAdmin();
+	$page = new PageAdmin(array(
+		"data"	=>	array(
+			"activeLink"	=>	1
+	)));
 	$page->setTpl("users", array(
 		"users"	=>	$users
 	));
@@ -65,7 +69,10 @@ $app->get('/admin/users', function() {
 $app->get('/admin/users/create', function() {
 	User::verifyLogin();
 
-	$page = new PageAdmin();
+	$page = new PageAdmin(array(
+		"data"	=>	array(
+			"activeLink"	=>	1
+	)));
 	$page->setTpl("users-create");
 });
 
@@ -88,7 +95,10 @@ $app->get('/admin/users/:iduser', function($iduser) {
 	$user = new User();
 	$user->get((int)$iduser);
 
-	$page = new PageAdmin();
+	$page = new PageAdmin(array(
+		"data"	=>	array(
+			"activeLink"	=>	1
+	)));
 	$page->setTpl("users-update", array(
 		"user"	=>	$user->getValues()
 	));
@@ -182,6 +192,83 @@ $app->post("/admin/forgot/reset", function() {
 	]);
 
 	$page->setTpl("forgot-reset-success");
+});
+
+// Categorias de produtos
+$app->get("/admin/categories", function() {
+	$categories = Category::listAll();
+
+	$page = new PageAdmin(array(
+		"data"	=>	array(
+			"activeLink"	=>	2
+	)));
+	$page->setTpl("categories", ["categories" => $categories]);
+});
+
+// Criar nova categoria
+$app->get("/admin/categories/create", function() {
+	User::verifyLogin();
+
+	$page = new PageAdmin(array(
+		"data"	=>	array(
+			"activeLink"	=>	2
+	)));
+
+	$page->setTpl("categories-create");
+});
+
+// Salvar no banco nova categoria
+$app->post("/admin/categories/create", function() {
+	User::verifyLogin();
+
+	$category = new Category();
+	$category->setData($_POST);
+	$category->save();
+
+	header("Location: /admin/categories");
+	exit();
+});
+
+// Exclui categoria do banco
+$app->get("/admin/categories/:idcategory/delete", function($idcategory) {
+	User::verifyLogin();
+
+	$category = new Category();
+	$category->get((int)$idcategory);
+	$category->delete();
+
+	header("Location: /admin/categories");
+	exit();
+});
+
+// Atualiza categoria no banco
+$app->get("/admin/categories/:idcategory", function($idcategory) {
+	User::verifyLogin();
+
+	$category = new Category();
+	$category->get((int)$idcategory);
+
+	$page = new PageAdmin(array(
+		"data"	=>	array(
+			"activeLink"	=>	2
+	)));
+
+	$page->setTpl("categories-update", [
+		"category"	=>	$category->getValues()
+	]);
+});
+
+// Salva atualização de categoria no banco
+$app->post("/admin/categories/:idcategory", function($idcategory) {
+	User::verifyLogin();
+
+	$category = new Category();
+	$category->get((int)$idcategory);
+	$category->setData($_POST);
+	$category->save();
+
+	header("Location: /admin/categories");
+	exit();
 });
 
 // Executa Slim Framework com todas as rodas definidas

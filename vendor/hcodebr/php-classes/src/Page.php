@@ -27,6 +27,8 @@ class Page {
 
         $this->tpl = new Tpl;
 
+        if (!isset($this->options["data"]["activeLink"])) $this->options["data"]["activeLink"] = 0;
+        
         $this->setData($this->options["data"]);
 
         if ($this->options["header"]) $this->tpl->draw("header");
