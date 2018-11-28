@@ -271,6 +271,18 @@ $app->post("/admin/categories/:idcategory", function($idcategory) {
 	exit();
 });
 
+// Exibe página de categoria especificada pelo ID
+$app->get("/categories/:idcategory", function($idcategory) {
+	$category = new Category();
+	$category->get((int)$idcategory);
+
+	$page = new Page();
+	$page->setTpl("category", [
+		"category"	=>	$category->getValues(),
+		"products"	=>	[]
+	]);
+});
+
 // Executa Slim Framework com todas as rodas definidas
 $app->run();
 
