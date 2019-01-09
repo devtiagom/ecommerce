@@ -203,3 +203,48 @@ $app->post("/register", function() {
 	header("Location: /checkout");
 	exit();
 });
+
+// Esqueci a senha (entrada de dados)
+$app->get("/forgot", function() {
+	$page = new Page();
+	$page->setTpl("forgot");
+});
+
+// Esqueci a senha (tratamento)
+$app->post("/forgot", function() {
+	$user = User::getForgot($_POST["email"], false);
+
+	header("Location: /forgot/sent");
+	exit();
+});
+
+// Esqueci a senha (e-mail enviado)
+$app->get("/forgot/sent", function() {
+	$page = new Page();
+	$page->setTpl("forgot-sent");
+});
+
+// Esqueci a senha (redefinindo senha)
+$app->get("/forgot/reset", function() {
+	$user = User::validForgotDecrypt($_GET["code"]);
+
+	$page = new Page();
+	$page->setTpl("forgot-reset", array(
+		"name"	=>	$user["desperson"],
+		"code"	=>	$_GET["code"]
+	));
+});
+
+// Esqueci a senha (salvando nova senha)
+$app->post("/forgot/reset", function() {
+	$forgot = User::validForgotDecrypt($_POST["code"]);
+	User::setForgotUsed($forgot["idrecovery"]);
+
+	$user = new User();
+	$user->get((int)$forgot["iduser"]);
+	$password = password_hash($_POST["password"], PASSWORD_DEFAULT, ["cost" => 12]);
+	$user->setPassword($password);
+
+	$page = new Page();
+	$page->setTpl("forgot-reset-success");
+});

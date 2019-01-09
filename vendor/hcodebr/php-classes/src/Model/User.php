@@ -190,7 +190,7 @@ class User extends Model {
 
     /**********************************************************************************************************/
 
-    public static function getForgot($userEmail) {
+    public static function getForgot($userEmail, $inadmin = true) {
         $sql = new SQL();
 
         $results = $sql->select(
@@ -223,7 +223,11 @@ class User extends Model {
                     User::IV
                 ));
 
-                $link = "http://www.hcodecommerce.com.br/admin/forgot/reset?code=$code";
+                if ($inadmin === true) {
+                    $link = "http://www.hcodecommerce.com.br/admin/forgot/reset?code=$code";
+                } else {
+                    $link = "http://www.hcodecommerce.com.br/forgot/reset?code=$code";
+                }
 
                 $mailer = new Mailer(
                     $data["desemail"],

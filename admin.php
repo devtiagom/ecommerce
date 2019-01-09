@@ -34,7 +34,7 @@ $app->get('/admin/logout', function() {
 	exit();
 });
 
-// Rota - esqueci a senha (entrada de dados)
+// Esqueci a senha (entrada de dados)
 $app->get("/admin/forgot", function() {
 	$page = new PageAdmin([
 		"header"	=>	false,
@@ -44,7 +44,7 @@ $app->get("/admin/forgot", function() {
 	$page->setTpl("forgot");
 });
 
-// Rota - esqueci a senha (tratamento)
+// Esqueci a senha (tratamento)
 $app->post("/admin/forgot", function() {
 	$user = User::getForgot($_POST["email"]);
 
@@ -52,7 +52,7 @@ $app->post("/admin/forgot", function() {
 	exit();
 });
 
-// Rota - esqueci a senha (e-mail enviado)
+// Esqueci a senha (e-mail enviado)
 $app->get("/admin/forgot/sent", function() {
 	$page = new PageAdmin([
 		"header"	=>	false,
@@ -62,7 +62,7 @@ $app->get("/admin/forgot/sent", function() {
 	$page->setTpl("forgot-sent");
 });
 
-// Rota - esqueci a senha (redefinindo senha)
+// Esqueci a senha (redefinindo senha)
 $app->get("/admin/forgot/reset", function() {
 	$user = User::validForgotDecrypt($_GET["code"]);
 
@@ -77,7 +77,7 @@ $app->get("/admin/forgot/reset", function() {
 	));
 });
 
-// Rota - esqueci a senha (salvando nova senha)
+// Esqueci a senha (salvando nova senha)
 $app->post("/admin/forgot/reset", function() {
 	$forgot = User::validForgotDecrypt($_POST["code"]);
 	User::setForgotUsed($forgot["idrecovery"]);
