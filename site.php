@@ -111,19 +111,61 @@ $app->post("/cart/freight", function() {
 	exit();
 });
 
-// Finalizar compra
+// Finalizar compra (mostra resumo do pedido antes de finalizar compra)
 $app->get("/checkout", function() {
 	User::verifyLogin(false);
 
+	$addr = new Address();
 	$cart = Cart::getFromSession();
 
-	$addr = new Address();
+	if (!isset($_GET['zipcode'])) $_GET['zipcode'] = $cart->getdeszipcode();
+	
+	$addr->loadFromCEP($_GET['zipcode']);
+	$cart->setdeszipcode($_GET['zipcode']);
+	$cart->save();
+	$cart->getCalculateTotal();
 
+	if (!$addr->getdesaddress()) $addr->setdesaddress('');
+	if (!$addr->getdescomplement()) $addr->setdescomplement('');
+	if (!$addr->getdesdistrict()) $addr->setdesdistrict('');
+	if (!$addr->getdescity()) $addr->setdescity('');
+	if (!$addr->getdesstate()) $addr->setdesstate('');
+	if (!$addr->getdescountry()) $addr->setdescountry('');
+	if (!$addr->getdeszipcode()) $addr->setdeszipcode('');
+	
 	$page = new Page();
 	$page->setTpl("checkout", [
 		'cart'		=>	$cart->getValues(),
-		'address'	=>	$addr->getValues()
+		'address'	=>	$addr->getValues(),
+		'products'	=>	$cart->getProducts(),
+		'error'		=>	Address::getMsgError()
 	]);
+});
+
+// Finalizar compra
+$app->post("/checkout", function() {
+	User::verifyLogin(false);
+
+	foreach ($_POST as $key => $value) {
+		if ($value === '') {
+			$msg = 'Informe ' . Address::getFieldName($key) . '!';
+			Address::setMsgError($msg);
+			header("Location: /checkout");
+			exit();
+		}
+	}
+
+	$user = User::getFromSession();
+
+	$_POST['deszipcode'] = $_POST['zipcode'];
+	$_POST['idperson'] = $user->getidperson();
+
+	$addr = new Address();
+	$addr->setData($_POST);
+	$addr->save();
+
+	header("Location: /order");
+	exit();
 });
 
 // Login de usuário cliente
@@ -267,13 +309,13 @@ $app->post("/profile", function() {
 	User::verifyLogin(false);
 	$user = User::getFromSession();
 
-	if (!$_POST['desperson'] || $_POST['desperson'] === '') {
+	if (!isset($_POST['desperson']) || $_POST['desperson'] === '') {
 		User::setError('Preencha o seu nome.');
 		header("Location: /profile");
 		exit();
 	}
 
-	if (!$_POST['desemail'] || $_POST['desemail'] === '') {
+	if (!isset($_POST['desemail']) || $_POST['desemail'] === '') {
 		User::setError('Preencha o seu e-mail.');
 		header("Location: /profile");
 		exit();
@@ -295,7 +337,7 @@ $app->post("/profile", function() {
 	$user->update();
 
 	$_SESSION[User::SESSION] = $user->getValues();
-	
+
 	User::setSuccess("Dados alterados com sucesso!");
 
 	header("Location: /profile");
