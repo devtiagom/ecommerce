@@ -8,7 +8,24 @@ use \Hcode\Model\Product;
 $app->get("/admin/products", function() {
     User::verifyLogin();
 
-    $products = Product::listAll();
+    $search = $_GET['search'] ?? '';
+	$pgn = (isset($_GET['page'])) ? (int)$_GET['page'] : 1;
+
+	if ($search != '')
+		$pagination = Product::getPageSearch($search, $pgn);
+	else
+		$pagination = Product::getPage($pgn);
+
+	$pages = [];
+	for ($i = 0; $i < $pagination['pages']; $i ++) {
+		array_push($pages, [
+			'href'	=>	'/admin/products?' . http_build_query([
+				'page'	=>	$i + 1,
+				'search'=>	$search
+			]),
+			'text'	=>	$i + 1
+		]);
+	}
 
     $page = new PageAdmin(array(
 		"data"	=>	array(
@@ -16,7 +33,9 @@ $app->get("/admin/products", function() {
     )));
     
     $page->setTpl("products", [
-        "products"  =>  $products
+        "products"  =>	$pagination['data'],
+		"search"	=>	$search,
+		"pages"		=>	$pages
     ]);
 });
 
