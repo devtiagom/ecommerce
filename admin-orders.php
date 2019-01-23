@@ -90,6 +90,25 @@ $app->get("/admin/orders/:idorder", function($idorder) {
 $app->get("/admin/orders", function() {
     User::verifyLogin();
 
+    $search = $_GET['search'] ?? '';
+	$pgn = (isset($_GET['page'])) ? (int)$_GET['page'] : 1;
+
+	if ($search != '')
+		$pagination = Order::getPageSearch($search, $pgn);
+	else
+		$pagination = Order::getPage($pgn);
+
+	$pages = [];
+	for ($i = 0; $i < $pagination['pages']; $i ++) {
+		array_push($pages, [
+			'href'	=>	'/admin/orders?' . http_build_query([
+				'page'	=>	$i + 1,
+				'search'=>	$search
+			]),
+			'text'	=>	$i + 1
+		]);
+	}
+
     $page = new PageAdmin(array(
 		"data"	=>	array(
 			"activeLink"	=>	4
@@ -97,6 +116,8 @@ $app->get("/admin/orders", function() {
         )
     );
     $page->setTpl("orders", [
-        'orders'    =>  Order::listAll()
+        "orders"    =>	$pagination['data'],
+		"search"	=>	$search,
+		"pages"		=>	$pages
     ]);
 });
