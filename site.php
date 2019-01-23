@@ -128,6 +128,7 @@ $app->get("/checkout", function() {
 	$cart->getCalculateTotal();
 
 	if (!$addr->getdesaddress()) $addr->setdesaddress('');
+	if (!$addr->getdesnumber()) $addr->setdesnumber('');
 	if (!$addr->getdescomplement()) $addr->setdescomplement('');
 	if (!$addr->getdesdistrict()) $addr->setdesdistrict('');
 	if (!$addr->getdescity()) $addr->setdescity('');
