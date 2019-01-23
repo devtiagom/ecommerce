@@ -3,6 +3,57 @@
 use \Hcode\PageAdmin;
 use \Hcode\Model\User;
 
+// Alterar senha de usuário administrador (entrar com os dados)
+$app->get("/admin/users/:iduser/password", function($iduser) {
+	User::verifyLogin();
+
+	$user = new User();
+	$user->get((int)$iduser);
+
+	$page = new PageAdmin(array(
+		"data"	=>	array(
+			"activeLink"	=>	1
+			)
+		)
+	);
+	$page->setTpl("users-password", [
+		"user"		=>	$user->getValues(),
+		"msgError"	=>	User::getError(),
+		"msgSuccess"=>	User::getSuccess()
+	]);
+});
+
+// Alterar senha de usuário administrador (salvar no banco)
+$app->post("/admin/users/:iduser/password", function($iduser) {
+	User::verifyLogin();
+
+	if (!isset($_POST['despassword']) || $_POST['despassword'] === '') {
+		User::setError("Digite a nova senha.");
+		header('Location: /admin/users/' . $iduser . '/password');
+		exit();
+	}
+
+	if (!isset($_POST['despassword-confirm']) || $_POST['despassword-confirm'] === '') {
+		User::setError("Confirme a nova senha.");
+		header('Location: /admin/users/' . $iduser . '/password');
+		exit();
+	}
+
+	if ($_POST['despassword'] !== $_POST['despassword-confirm']) {
+		User::setError("A nova senha e a confirmação devem ser iguais.");
+		header('Location: /admin/users/' . $iduser . '/password');
+		exit();
+	}
+
+	$user = new User();
+	$user->get((int)$iduser);
+	$user->setPassword(User::getPasswordHash($_POST['despassword']));
+
+	User::setSuccess("Senha atualizada com sucesso!");
+	header('Location: /admin/users/' . $iduser . '/password');
+	exit();
+});
+
 // Lista dos usuários
 $app->get('/admin/users', function() {
 	User::verifyLogin();
