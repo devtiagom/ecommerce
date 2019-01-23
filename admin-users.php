@@ -10,8 +10,10 @@ $app->get('/admin/users', function() {
 	$search = $_GET['search'] ?? '';
 	$pgn = (isset($_GET['page'])) ? (int)$_GET['page'] : 1;
 
-	if ($search != '') $pagination = User::getPageSearch($search, $pgn);
-	else $pagination = User::getPage($pgn);
+	if ($search != '')
+		$pagination = User::getPageSearch($search, $pgn);
+	else
+		$pagination = User::getPage($pgn);
 
 	$pages = [];
 	for ($i = 0; $i < $pagination['pages']; $i ++) {

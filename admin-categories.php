@@ -8,13 +8,38 @@ use \Hcode\Model\Product;
 
 // Categorias de produtos
 $app->get("/admin/categories", function() {
-	$categories = Category::listAll();
+	User::verifyLogin();
+
+	$search = $_GET['search'] ?? '';
+	$pgn = (isset($_GET['page'])) ? (int)$_GET['page'] : 1;
+
+	if ($search != '')
+		$pagination = Category::getPageSearch($search, $pgn);
+	else
+		$pagination = Category::getPage($pgn);
+
+	$pages = [];
+	for ($i = 0; $i < $pagination['pages']; $i ++) {
+		array_push($pages, [
+			'href'	=>	'/admin/users?' . http_build_query([
+				'page'	=>	$i + 1,
+				'search'=>	$search
+			]),
+			'text'	=>	$i + 1
+		]);
+	}
 
 	$page = new PageAdmin(array(
 		"data"	=>	array(
 			"activeLink"	=>	2
-	)));
-	$page->setTpl("categories", ["categories" => $categories]);
+			)
+		)
+	);
+	$page->setTpl("categories", [
+		"categories"=>	$pagination['data'],
+		"search"	=>	$search,
+		"pages"		=>	$pages
+	]);
 });
 
 // Criar nova categoria
