@@ -180,8 +180,35 @@ $app->post("/checkout", function() {
 	]);
 	$order->save();
 
-	header("Location: /order/" . $order->getidorder());
+	// Via boleto
+	//header("Location: /order/" . $order->getidorder());
+
+	header('Location: /order/' . $order->getidorder() . '/pagseguro');
 	exit();
+});
+
+// Pagamento via pagseguro
+$app->get("/order/:idorder/pagseguro", function($idorder) {
+	User::verifyLogin(false);
+
+	$order = new Order();
+	$order->get((int)$idorder);
+
+	//$cart = $order->getCart();
+
+	$page = new Page([
+		'header'	=>	false,
+		'footer'	=>	false
+	]);
+	$page->setTpl("payment-pagseguro", [
+		'order'		=>	$order->getValues(),
+		'cart'		=>	$order->getCart()->getValues(),
+		'products'	=>	$order->getCart()->getProducts(),
+		'phone'		=>	[
+			'areaCode'	=>	substr($order->getnrphone(), 0, 2),
+			'number'	=>	substr($order->getnrphone(), 2, strlen($order->getnrphone() - 1))
+		]
+	]);
 });
 
 // Login de usuário cliente
