@@ -183,11 +183,23 @@ $app->post("/checkout", function() {
 	// Via boleto
 	//header("Location: /order/" . $order->getidorder());
 
-	header('Location: /order/' . $order->getidorder() . '/pagseguro');
+	// Forma de pagamento
+	switch ((int)$_POST['payment-method']) {
+		// Pagamento via PagSeguro
+		case 1:
+			header('Location: /order/' . $order->getidorder() . '/pagseguro');
+		break;
+
+		// Pagamento via PayPal
+		case 2:
+			header('Location: /order/' . $order->getidorder() . '/paypal');
+		break;
+	}
+
 	exit();
 });
 
-// Pagamento via pagseguro
+// Pagamento via PagSeguro
 $app->get("/order/:idorder/pagseguro", function($idorder) {
 	User::verifyLogin(false);
 
@@ -208,6 +220,24 @@ $app->get("/order/:idorder/pagseguro", function($idorder) {
 			'areaCode'	=>	substr($order->getnrphone(), 0, 2),
 			'number'	=>	substr($order->getnrphone(), 2, strlen($order->getnrphone() - 1))
 		]
+	]);
+});
+
+// Pagamento via PayPal
+$app->get("/order/:idorder/paypal", function($idorder) {
+	User::verifyLogin(false);
+
+	$order = new Order();
+	$order->get((int)$idorder);
+
+	$page = new Page([
+		'header'	=>	false,
+		'footer'	=>	false
+	]);
+	$page->setTpl("payment-paypal", [
+		'order'		=>	$order->getValues(),
+		'cart'		=>	$order->getCart()->getValues(),
+		'products'	=>	$order->getCart()->getProducts()
 	]);
 });
 
